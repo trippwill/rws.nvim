@@ -1,11 +1,14 @@
 return {
   'trippwill/rws.nvim',
-  cmd = 'RemWinScroll',
+  cmd = {
+    'RemWinScroll',
+    'RemWinSelect',
+  },
   opts = {},
   keys = {
     {
-      '<M-Up>',
-      '<cmd>RemWinScroll k f half<cr>',
+      '<A-Up>',
+      '<cmd>RemWinSelect k<cr>',
       desc = 'Scroll window above forward half a page',
       mode = { 'n', 'i' },
     },
@@ -16,9 +19,9 @@ return {
       mode = { 'n', 'i' },
     },
     {
-      '<M-Down>',
-      '<cmd>RemWinScroll j f half<cr>',
-      desc = 'Scroll window below forward half a page',
+      '<A-Down>',
+      '<cmd>RemWinSelect j<cr>',
+      desc = 'Scroll window beloww forward half a page',
       mode = { 'n', 'i' },
     },
     {
@@ -28,8 +31,8 @@ return {
       mode = { 'n', 'i' },
     },
     {
-      '<M-Right>',
-      '<cmd>RemWinScroll l f half<cr>',
+      '<A-Right>',
+      '<cmd>RemWinSelect l<cr>',
       desc = 'Scroll window to right forward half a page',
       mode = { 'n', 'i' },
     },
@@ -40,8 +43,8 @@ return {
       mode = { 'n', 'i' },
     },
     {
-      '<M-Left>',
-      '<cmd>RemWinScroll h f half<cr>',
+      '<A-Left>',
+      '<cmd>RemWinSelect h<cr>',
       desc = 'Scroll window to left forward half a page',
       mode = { 'n', 'i' },
     },

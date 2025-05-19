@@ -8,7 +8,8 @@ mkdir -p "$PWD/doc"
 cargo install vimcats --features=cli
 vimcats \
   lua/rws/init.lua \
+  lua/rws/opts-swap.lua \
   lazy.lua \
-  >"$PWD/doc/modechar.nvim.txt"
+  >"$PWD/doc/rws.nvim.txt"
 
-less "$PWD/doc/modechar.nvim.txt"
+less "$PWD/doc/rws.nvim.txt"

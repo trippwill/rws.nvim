@@ -1,0 +1,191 @@
+==============================================================================
+Introduction                                                         *rws.intro*
+
+ The RWS (Remote Window Scrolling) module provides functionality to scroll
+ windows in view that are not the current window.
+
+==============================================================================
+Types                                                                *rws.types*
+
+Win                                                                        *Win*
+
+    Type: ~
+        integer
+
+
+ScrollDirection                                                *ScrollDirection*
+
+    Type: ~
+        "f"|"b"
+
+
+ScrollAmount                                                      *ScrollAmount*
+
+    Type: ~
+        "line"|"half"|"full"
+
+
+HighlightDef : vim.api.keyset.highlight                           *HighlightDef*
+
+    Fields: ~
+        {1}  (string)
+
+
+RwsOptions                                                          *RwsOptions*
+
+    Fields: ~
+        {debug?}              (boolean|"verbose")  Enable debug mode
+        {allow_current_win?}  (boolean)            Allow scrolling the current window
+        {target_options?}     (OptValueSet)
+        {target_hl?}          (HighlightDef)
+
+
+==============================================================================
+Module                                                              *rws.module*
+
+M.find_target_win({arg})                                     *M.find_target_win*
+    Find the target window based on arg
+
+    Parameters: ~
+        {arg}  (string|integer)  @return Win?, string?
+
+    See: ~
+        |vim.fn.winnr|
+
+
+                                                        *M.scroll_target_window*
+M.scroll_target_window({target}, {direction}, {amount})
+    Scroll a target window by window id
+
+    Parameters: ~
+        {target}     (Win)
+        {direction}  (ScrollDirection)
+        {amount}     (ScrollAmount)
+
+
+                                                                      *M.scroll*
+M.scroll({target_arg}, {scroll_direction}, {scroll_amount})
+    Scroll a target window by winnr arg
+
+    Parameters: ~
+        {target_arg}        (string|integer)   Target window to scroll
+        {scroll_direction}  (ScrollDirection)  Direction to scroll
+        {scroll_amount}     (ScrollAmount)     Amount to scroll
+
+    See: ~
+        |vim.fn.winnr|
+
+
+M.select_target({target_arg})                                  *M.select_target*
+    Select a target window by winnr arg
+
+    Parameters: ~
+        {target_arg}  (string|integer)  Target window to select
+                                        @return boolean, string?
+
+    See: ~
+        |vim.fn.winnr|
+
+
+M.route()                                                              *M.route*
+
+
+M.reset_target()                                                *M.reset_target*
+    Reset the target window to its original state
+
+
+M.setup({opts})                                                        *M.setup*
+    Initialize the RWS module
+
+    Parameters: ~
+        {opts}  (RwsOptions)
+
+
+==============================================================================
+Introduction                                                   *opts-swap.intro*
+
+ Module for swapping and resetting Vim options.
+ Provides functions to set options on windows, buffers, globally, or locally,
+ while returning the previous values for easy restoration.
+
+==============================================================================
+Types                                                          *opts-swap.types*
+
+OptValueSet                                                        *OptValueSet*
+
+    Type: ~
+        table<string,any>
+
+
+The result of swapping options. A table containing the previous values of the options.
+Will also include the target of the swap.
+Always one of WinResult, BufferResult, GlobalResult, or LocalResult.
+
+OptValueResult : table                                          *OptValueResult*
+
+
+WinResult : OptValueResult                                           *WinResult*
+
+
+BufferResult : OptValueResult                                     *BufferResult*
+
+
+GlobalResult : OptValueResult                                     *GlobalResult*
+
+
+LocalResult : OptValueResult                                       *LocalResult*
+
+
+==============================================================================
+Module                                                        *opts-swap.module*
+
+M.win_swap_opts({winid}, {opt_set})                            *M.win_swap_opts*
+    Set options on a window, returning the previous values
+
+    Parameters: ~
+        {winid}    (integer)
+        {opt_set}  (OptValueSet)
+
+    Returns: ~
+        (WinResult)
+
+
+M.buf_swap_opts({bufnr}, {opt_set})                            *M.buf_swap_opts*
+    Set options on a buffer, returning the previous values
+
+    Parameters: ~
+        {bufnr}    (integer)
+        {opt_set}  (OptValueSet)
+
+    Returns: ~
+        (BufferResult)
+
+
+M.global_swap_opts({opt_set})                               *M.global_swap_opts*
+    Set options globally, returning the previous values
+
+    Parameters: ~
+        {opt_set}  (OptValueSet)
+
+    Returns: ~
+        (GlobalResult)
+
+
+M.local_swap_opts({opt_set})                                 *M.local_swap_opts*
+    Set options locally, returning the previous values
+
+    Parameters: ~
+        {opt_set}  (OptValueSet)
+
+    Returns: ~
+        (LocalResult)
+
+
+M.reset_opts({opt_result})                                        *M.reset_opts*
+    Reset the options to their original values
+
+    Parameters: ~
+        {opt_result}  (OptValueResult)  @return boolean, string?
+
+
+vim:tw=78:ts=8:noet:ft=help:norl:

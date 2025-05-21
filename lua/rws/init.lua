@@ -294,10 +294,10 @@ function M.setup(opts)
 
       if keyseq and cmd then
         local mode = keydef.mode or { 'n' }
-        vim.keymap.set(mode, keyseq, function()
-          M.route(keyseq)
-        end, { noremap = true, silent = true, desc = keydef.desc })
         local resolved = utils.escape_keys(keyseq)
+        vim.keymap.set(mode, keyseq, function()
+          M.route(resolved)
+        end, { noremap = true, silent = true, desc = keydef.desc })
         M.__resolved_keys[resolved] = utils.escape_keys(keydef.cmd)
       else
         M.__error(('Invalid key definition: %s'):format(vim.inspect(keydef)))

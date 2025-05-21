@@ -31,13 +31,15 @@
 ---@mod opts-swap.module Module
 
 local M = {}
+local api = vim.api
+local set_option = api.nvim_set_option_value
+local get_option = api.nvim_get_option_value
 
+---Set options on a target (window, buffer, global, or local) and return the previous values.
 ---@param opt_set OptValueSet
 ---@param target vim.api.keyset.option
 ---@return OptValueResult
 local function swap_opts(opt_set, target)
-  local get_option = vim.api.nvim_get_option_value
-  local set_option = vim.api.nvim_set_option_value
   local result = {}
 
   for k, v in pairs(opt_set) do
@@ -102,20 +104,22 @@ function M.reset_opts(opt_result)
 
   if opt_result['global'] then
     target = { scope = 'global' }
+    opt_result['global'] = nil
   elseif opt_result['local'] then
     target = { scope = 'local' }
+    opt_result['local'] = nil
   elseif opt_result['bufnr'] then
     target = { buf = opt_result['bufnr'] }
+    opt_result['bufnr'] = nil
   elseif opt_result['winid'] then
     target = { win = opt_result['winid'] }
+    opt_result['winid'] = nil
   else
     return false, 'Invalid target for reset'
   end
 
   for k, v in pairs(opt_result) do
-    if k ~= 'global' and k ~= 'local' and k ~= 'bufnr' and k ~= 'winid' then
-      vim.api.nvim_set_option_value(k, v, target)
-    end
+    pcall(set_option, k, v, target)
   end
 
   return true

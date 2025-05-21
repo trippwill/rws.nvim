@@ -16,8 +16,10 @@ Win                                                                        *Win*
 RoutedKeyDef                                                      *RoutedKeyDef*
 
     Fields: ~
-        {1}    (string)  Key to route
-        {cmd}  (string)  Command to execute
+        {1}      (string)           Key to route
+        {cmd}    (string)           Command to execute
+        {mode?}  (string|string[])
+        {desc?}  (string)
 
 
 HighlightDef : vim.api.keyset.highlight                           *HighlightDef*
@@ -32,7 +34,7 @@ RwsOptions                                                          *RwsOptions*
         {debug?}              (boolean|"verbose")  Enable debug mode
         {allow_current_win?}  (boolean)            Allow scrolling the current window
         {target_options?}     (OptValueSet)
-        {target_hl?}          (HighlightDef)
+        {highlights?}         (HighlightDef[])
         {keys?}               (RoutedKeyDef[])
 
 
@@ -56,17 +58,20 @@ M.select_target({target_arg})                                  *M.select_target*
         |vim.fn.winnr|
 
 
-M.reset_target()                                                *M.reset_target*
+M.reset_target({skip_opts_reset?})                              *M.reset_target*
     Reset the target window to its original state
 
+    Parameters: ~
+        {skip_opts_reset?}  (boolean)  Skip resetting window options. Useful when the window is closing.
 
-M.route({key})                                                         *M.route*
+
+M.route({keyseq})                                                      *M.route*
     Route a mapped key to the target window.
     When the target window is not set,
     the key is sent to input.
 
     Parameters: ~
-        {key}  (string)  Key to route
+        {keyseq}  (string)  Key Sequence to route
 
     Returns: ~
         (boolean)  if the key was routed, false otherwise

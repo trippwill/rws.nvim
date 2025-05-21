@@ -1,5 +1,3 @@
-local swaps = require('rws.opts-swap')
-
 ---@mod rws.intro Introduction
 ---@brief [[
 ---The RWS (Remote Window System) module sends commands
@@ -13,6 +11,8 @@ local swaps = require('rws.opts-swap')
 ---@class RoutedKeyDef
 ---@field [1] string Key to route
 ---@field cmd string Command to execute
+---@field mode? string | string[]
+---@field desc? string
 
 ---@class HighlightDef : vim.api.keyset.highlight
 ---@field [1] string
@@ -21,19 +21,24 @@ local swaps = require('rws.opts-swap')
 ---@field debug? boolean | 'verbose' Enable debug mode
 ---@field allow_current_win? boolean Allow scrolling the current window
 ---@field target_options? OptValueSet
----@field target_hl? HighlightDef
+---@field highlights? HighlightDef[]
 ---@field keys? RoutedKeyDef[]
 
 ---@mod rws.module Module
 
 local M = {}
+local profiler = require('rws.profiler').enable(false, true)
+local swaps = require('rws.opts-swap')
+local utils = require('rws.utils')
+local api = vim.api
+local fn = vim.fn
 
 ---@type RwsOptions
 M.defaults = {
   debug = false,
   allow_current_win = false,
   target_options = {
-    winhighlight = 'NormalNC:VisualNOS',
+    winhighlight = 'NormalNC:Normal',
     cursorline = false,
     statuscolumn = '%#RWSTargetWindow#',
     signcolumn = 'no',
@@ -42,33 +47,36 @@ M.defaults = {
     foldlevel = 999,
     foldcolumn = '0',
   },
-  target_hl = {
-    'RWSTargetWindow',
-    fg = '#556745',
-    bg = 'NONE',
+  highlights = {
+    {
+      'RWSTargetWindow',
+      fg = '#556745',
+      bg = 'NONE',
+    },
   },
   keys = {
-    { '<S-Up>', cmd = 'normal! <C-u>' },
-    { '<S-Down>', cmd = 'normal! <C-d>' },
-    { '<Up>', cmd = 'normal! <C-y>' },
-    { '<Down>', cmd = 'normal! <C-e>' },
+    { '<S-Up>', cmd = 'normal! <C-u>', mode = { 'n', 'i' }, desc = 'Scroll the target window up half a page' },
+    { '<S-Down>', cmd = 'normal! <C-d>', mode = { 'n', 'i' }, desc = 'Scroll the target window down half a page' },
+    { '<S-Left>', cmd = 'normal! <C-y>', mode = { 'n', 'i' }, desc = 'Scroll the target window up one line' },
+    { '<S-Right>', cmd = 'normal! <C-e>', mode = { 'n', 'i' } },
   },
 }
 
 ---@type RwsOptions?
----@package
 ---@private
 M.config = nil
 
 ---@type WinResult?
----@package
 ---@private
-M.current_target = nil
+M.__current_target = nil
+
+---@type integer?
+---@private
+M.__autocmd_group = nil
 
 ---@type table<string, string>
----@package
 ---@private
-M.resolved_keys = {}
+M.__resolved_keys = {}
 
 ---Find the target window based on arg
 ---@private
@@ -76,20 +84,20 @@ M.resolved_keys = {}
 ---@return Win?, string?
 ---@see vim.fn.winnr
 function M.find_target_win(arg)
-  local target_winnr = vim.fn.winnr(arg)
+  local target_winnr = fn.winnr(arg)
   if target_winnr == 0 then
-    return nil, 'Argument did not match any window: ' .. (arg or '')
+    return nil, ('Argument did not match any window: %s'):format(arg)
   end
 
-  local target_win = vim.fn.win_getid(target_winnr)
+  local target_win = fn.win_getid(target_winnr)
   if target_win == 0 then
-    return nil, 'Window id not found for winnr: ' .. (target_winnr or '')
+    return nil, ('Window id not found for winnr: %s'):format(target_winnr)
   end
 
   if not M.config.allow_current_win then
-    local cur_win = vim.api.nvim_get_current_win()
+    local cur_win = api.nvim_get_current_win()
     if target_win == cur_win then
-      return nil, 'Curent window is not allowed to be target'
+      return nil, 'Cannot target current window'
     end
   end
 
@@ -103,170 +111,216 @@ end
 function M.select_target(target_arg)
   local target, err = M.find_target_win(target_arg)
   if not target then
-    if err and M.config.debug then
-      vim.notify(err or ('Invalid window for arg: ' .. target_arg), vim.log.levels.DEBUG, { title = 'RWS' })
+    if err then
+      M.__debug(('Invalid window for arg: %s'):format(target_arg))
     end
-
     return false, err
   end
 
-  local current = M.current_target
+  local current = M.__current_target
   if current then
-    local current_win = current.winid
-    M.current_target = nil
-    local ok = pcall(swaps.reset_opts, current)
-    if not ok and M.config.debug then
-      vim.notify(
-        ('Failed to reset target window %d: %s'):format(current_win, vim.inspect(current)),
-        vim.log.levels.ERROR,
-        { title = 'RWS' }
-      )
-    end
-
-    -- If the target window is currently selected, unselect it and return
-    if current_win == target then
+    local current_target_win = current.winid
+    M.reset_target()
+    -- Toggle if the current target is the same as the next target
+    if current_target_win == target then
       return false, nil
     end
   end
 
-  M.current_target = swaps.win_swap_opts(target, M.config.target_options)
+  assert(not M.__current_target, 'Expected null current target')
+  assert(not M.__autocmd_group, 'Expected null autocmd group')
 
-  if M.config.debug == 'verbose' then
-    vim.notify(
-      ('Target window %d selected with config: %s'):format(target, vim.inspect(M.current_target)),
-      vim.log.levels.TRACE,
-      { title = 'RWS' }
-    )
-  end
+  M.__current_target = swaps.win_swap_opts(target, M.config.target_options)
 
-  return true, nil
-end
+  -- Create buffer-local autocommands for the target window
+  local winid = target
+  local bufnr = api.nvim_win_get_buf(winid)
+  local group = api.nvim_create_augroup('RWS_Target', { clear = false })
 
----Reset the target window to its original state
-function M.reset_target()
-  local current = M.current_target
-  if current then
-    pcall(swaps.reset_opts, current)
-    M.current_target = nil
-  end
-end
-
----Route a mapped key to the target window.
----When the target window is not set,
----the key is sent to input.
----@param key string Key to route
----@return boolean True if the key was routed, false otherwise
-function M.route(key)
-  -- If the key contains < then replace termcodes
-  if key:find('<') then
-    key = vim.api.nvim_replace_termcodes(key, true, false, true)
-  end
-
-  if M.config.debug == 'verbose' then
-    vim.notify(('Routing key %s'):format(key), vim.log.levels.DEBUG, { title = 'RWS' })
-  end
-
-  if M.current_target then
-    local target = M.current_target.winid
-    if target then
-      local keymap = M.resolved_keys[key]
-      if keymap then
-        vim.api.nvim_win_call(target, function()
-          vim.cmd(keymap)
-        end)
-        return true
-      elseif M.config.debug then
-        vim.notify(('Key %s not found in RWS keys'):format(key), vim.log.levels.DEBUG, { title = 'RWS' })
-      end
-    end
-  end
-
-  vim.api.nvim_feedkeys(key, 'n', false) -- n is noremap
-  return false
-end
-
----Initialize the RWS module
----@param opts RwsOptions
-function M.setup(opts)
-  local escape = function(cmd)
-    return vim.api.nvim_replace_termcodes(cmd, true, false, true)
-  end
-
-  local ok, commands = pcall(require, 'rws.commands')
-  if not ok then
-    vim.notify(
-      ('Fatal: Failed to load user command definitions: '):format(commands),
-      vim.log.levels.ERROR,
-      { title = 'RWS' }
-    )
-    return
-  end
-
-  local config = vim.tbl_deep_extend('force', M.defaults, opts or {})
-
-  if config.debug then
-    vim.notify(('RWS setup with opts:\n%s'):format(vim.inspect(config)), vim.log.levels.DEBUG, { title = 'RWS' })
-  end
-
-  if #config.keys == 0 then
-    vim.notify('No keys provided for RWS', vim.log.levels.WARN, { title = 'RWS' })
-  end
-
-  for _, key in ipairs(config.keys) do
-    if type(key) == 'table' and key[1] and key.cmd then
-      M.resolved_keys[escape(key[1])] = escape(key.cmd)
-    end
-  end
-
-  if config.debug == 'verbose' then
-    vim.notify(('RWS keys resolved:\n%s'):format(vim.inspect(M.resolved_keys)), vim.log.levels.DEBUG, { title = 'RWS' })
-  end
-
-  for _, command in ipairs(commands) do
-    if config.debug == 'verbose' then
-      vim.notify(
-        ('Creating command %s with opts: %s'):format(command[1], vim.inspect(command[3])),
-        vim.log.levels.DEBUG,
-        { title = 'RWS' }
-      )
-    end
-    vim.api.nvim_create_user_command(command[1], command[2], command[3])
-  end
-
-  local target_hl = config.target_hl
-  if target_hl then
-    local hl_def = {}
-    for k, v in pairs(target_hl) do
-      hl_def[k] = v
-    end
-    local hl_name = table.remove(hl_def, 1)
-    if hl_name then
-      vim.api.nvim_set_hl(0, hl_name, hl_def)
-    else
-      vim.notify('No highlight group name provided for target_hl', vim.log.levels.ERROR, { title = 'RWS' })
-    end
-  end
-
-  -- Autoreset when target window gets focus
-  vim.api.nvim_create_autocmd('WinEnter', {
+  -- Reset target when it gets focus
+  api.nvim_create_autocmd('WinEnter', {
+    group = group,
+    buffer = bufnr,
     callback = function()
-      if M.current_target and vim.api.nvim_get_current_win() == M.current_target.winid then
+      if M.__current_target and vim.api.nvim_get_current_win() == winid then
         M.reset_target()
       end
     end,
     desc = 'RWS: Reset target when it gets focus',
   })
 
-  -- Clear the current target when the window is closed
-  vim.api.nvim_create_autocmd('WinClosed', {
+  -- Unset target when window is closed
+  api.nvim_create_autocmd('WinClosed', {
+    group = group,
+    buffer = bufnr,
     callback = function(args)
-      if M.current_target and tonumber(args.match) == M.current_target.winid then
-        M.current_target = nil
+      if M.__current_target and tonumber(args.match) == winid then
+        M.reset_target(true)
       end
     end,
     desc = 'RWS: Unset target when it gets closed',
   })
 
+  M.__autocmd_group = group
+  M.__trace(('Target window %d selected'):format(target))
+
+  return true, nil
+end
+
+---Reset the target window to its original state
+---@param skip_opts_reset? boolean Skip resetting window options. Useful when the window is closing.
+function M.reset_target(skip_opts_reset)
+  local current = M.__current_target
+  local augroup_id = M.__autocmd_group
+  if current then
+    M.__trace(('Resetting target window %d'):format(current.winid))
+    M.__current_target = nil
+    M.__autocmd_group = nil
+
+    if not skip_opts_reset then
+      pcall(swaps.reset_opts, current)
+    end
+
+    -- Clear autocommands if any
+    if augroup_id then
+      pcall(api.nvim_del_augroup_by_id, augroup_id)
+    end
+  end
+end
+
+---Route a mapped key to the target window.
+---When the target window is not set,
+---the key is sent to input.
+---@param keyseq string Key Sequence to route
+---@return boolean True if the key was routed, false otherwise
+function M.route(keyseq)
+  M.__trace(("Routing key sequence: '%s'"):format(keyseq))
+
+  if not keyseq or keyseq == '' then
+    M.__warn('route: Empty key sequence provided')
+    return false
+  end
+
+  if keyseq:sub(1, 1) == '<' then
+    keyseq = utils.escape_keys(keyseq)
+    M.__trace(('route: Escaping key sequence'):format(keyseq))
+  end
+
+  if M.__current_target then
+    local target = M.__current_target.winid
+    if target then
+      local cmd = M.__resolved_keys[keyseq]
+      if cmd then
+        api.nvim_win_call(target, function()
+          vim.cmd(cmd)
+        end)
+        return true
+      end
+    end
+  end
+
+  -- No match, feed keys as input
+  M.__trace('route: No target window, feeding keys as input')
+  api.nvim_feedkeys(keyseq, 'n', false)
+  return false
+end
+
+--- Load commands from the specified module
+---@private
+---@param module string Module name to load commands from
+---@return boolean, string? Error message if loading fails
+local function load_commands(module)
+  local ok, commands = pcall(require, module)
+  if not ok or type(commands) ~= 'table' then
+    return false, commands
+  end
+
+  for _, command in ipairs(commands) do
+    ok = pcall(api.nvim_create_user_command, command[1], command[2], command[3])
+    if not ok then
+      return false, ('Failed to create command %s: %s'):format(command[1], command[2])
+    end
+  end
+
+  return true, nil
+end
+
+---@private
+local function hook_notify(debug)
+  local notify = vim.notify
+  ---@private
+  M.__warn = function(s)
+    notify(s, vim.log.levels.WARN, { title = 'RWS' })
+  end
+  ---@private
+  M.__error = function(s)
+    notify(s, vim.log.levels.ERROR, { title = 'RWS' })
+  end
+  ---@private
+  M.__debug = debug and function(s)
+    notify(s, vim.log.levels.DEBUG, { title = 'RWS' })
+  end or function() end
+  ---@private
+  M.__trace = debug == 'verbose' and function(s)
+    notify(s, vim.log.levels.TRACE, { title = 'RWS' })
+  end or function() end
+end
+
+---Initialize the RWS module
+---@param opts RwsOptions
+function M.setup(opts)
+  local pstop = profiler.profile_start('rws_profile_setup')
+  -- Load and validate the options
+  local config = vim.tbl_deep_extend('force', M.defaults, opts or {})
+  hook_notify(config.debug)
+  M.__debug(('RWS setup with opts:\n%s'):format(vim.inspect(config)))
+
+  local ok, err = load_commands('rws.commands')
+  if not ok then
+    M.__error(('Unrecoverable: Failed to load commands: %s'):format(err))
+    return
+  end
+
+  if #config.keys == 0 then
+    M.__warn('No keys provided')
+  end
+
+  -- Register keymaps and build the table for resolved key sequences
+  M.__resolved_keys = {}
+  for _, keydef in ipairs(config.keys) do
+    if type(keydef) == 'table' then
+      local keyseq = keydef[1]
+      local cmd = keydef.cmd
+
+      if keyseq and cmd then
+        local mode = keydef.mode or { 'n' }
+        vim.keymap.set(mode, keyseq, function()
+          M.route(keyseq)
+        end, { noremap = true, silent = true, desc = keydef.desc })
+        local resolved = utils.escape_keys(keyseq)
+        M.__resolved_keys[resolved] = utils.escape_keys(keydef.cmd)
+      else
+        M.__error(('Invalid key definition: %s'):format(vim.inspect(keydef)))
+      end
+    end
+  end
+
+  M.__trace(('Resolved keys:\n%s'):format(vim.inspect(M.__resolved_keys)))
+
+  -- Register highlights
+  local highlights = config.highlights or {}
+  for _, hl_def in ipairs(highlights) do
+    if type(hl_def) == 'table' then
+      local hl_name = table.remove(hl_def, 1)
+      if hl_name then
+        api.nvim_set_hl(0, hl_name, hl_def)
+      else
+        M.__error('No highlight group name provided for highlight')
+      end
+    end
+  end
+
+  pstop()
   M.config = config
 end
 

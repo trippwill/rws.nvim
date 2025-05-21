@@ -1,9 +1,10 @@
+local trim_quotes = require('rws.utils').trim_surrounding_quotes
 return {
   {
     'RemWinSelect',
-    function(_opts)
-      local arg = _opts.args
-      vim.validate('0', arg, { 'string', 'number' }, 'Usage: RemWinSelect <target>')
+    function(opts)
+      local arg = opts.args
+      vim.validate('args', arg, { 'string', 'number' }, 'Usage: RemWinSelect <target>')
 
       require('rws').select_target(arg)
     end,
@@ -24,14 +25,14 @@ return {
   {
     'RemWinRoute',
     function(opts)
-      local arg = opts.args
-      vim.validate('0', arg, { 'string' }, 'Usage: RemWinRoute <key>')
-
-      require('rws').route(arg)
+      local keyseq = trim_quotes(opts.args)
+      vim.validate('args', keyseq, { 'string' }, 'Usage: RemWinRoute <key> [<key> ...]')
+      require('rws').route(keyseq)
     end,
     {
-      nargs = 1,
-      desc = 'Route a key to the target window',
+      nargs = '+',
+      desc = 'Route a key or key sequence to the target window',
+      complete = nil,
     },
   },
 }

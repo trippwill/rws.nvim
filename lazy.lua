@@ -6,10 +6,9 @@ return {
     'RemWinRoute',
   },
   opts = {},
-  config = function(_, opts)
-    local rws = require('rws')
-    rws.setup(opts)
-  end,
+  dependencies = {
+    { 'nvim-lua/plenary.nvim', optional = true },
+  },
   keys = {
     {
       '<M-Up>',
@@ -40,28 +39,6 @@ return {
       '<cmd>RemWinReset<cr>',
       desc = 'Reset target window',
       mode = { 'n', 'i' },
-    },
-    {
-      '<Up>',
-      '<cmd>RemWinRoute <Up><cr>',
-      desc = 'Scroll target window up a line',
-      mode = { 'n', 'i' },
-    },
-    {
-      '<Down>',
-      '<cmd>RemWinRoute <Down><cr>',
-      desc = 'Scroll target window down a line',
-      mode = { 'n', 'i' },
-    },
-    {
-      '<S-Up>',
-      '<cmd>RemWinRoute <S-Up><cr>',
-      desc = 'Scroll target window up a half-page',
-    },
-    {
-      '<S-Down>',
-      '<cmd>RemWinRoute <S-Down><cr>',
-      desc = 'Scroll target window down a half-page',
     },
   },
 }

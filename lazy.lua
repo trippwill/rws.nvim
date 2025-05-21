@@ -1,58 +1,67 @@
 return {
   'trippwill/rws.nvim',
   cmd = {
-    'RemWinScroll',
     'RemWinSelect',
+    'RemWinReset',
+    'RemWinRoute',
   },
   opts = {},
+  config = function(_, opts)
+    local rws = require('rws')
+    rws.setup(opts)
+  end,
   keys = {
     {
-      '<A-Up>',
+      '<M-Up>',
       '<cmd>RemWinSelect k<cr>',
-      desc = 'Scroll window above forward half a page',
+      desc = 'Target window above',
+      mode = { 'n', 'i' },
+    },
+    {
+      '<M-Down>',
+      '<cmd>RemWinSelect j<cr>',
+      desc = 'Target window below',
+      mode = { 'n', 'i' },
+    },
+    {
+      '<M-Right>',
+      '<cmd>RemWinSelect l<cr>',
+      desc = 'Target window to the right',
+      mode = { 'n', 'i' },
+    },
+    {
+      '<M-Left>',
+      '<cmd>RemWinSelect h<cr>',
+      desc = 'Target window to the left',
+      mode = { 'n', 'i' },
+    },
+    {
+      '<M-Esc>',
+      '<cmd>RemWinReset<cr>',
+      desc = 'Reset target window',
+      mode = { 'n', 'i' },
+    },
+    {
+      '<Up>',
+      '<cmd>RemWinRoute <Up><cr>',
+      desc = 'Scroll target window up a line',
+      mode = { 'n', 'i' },
+    },
+    {
+      '<Down>',
+      '<cmd>RemWinRoute <Down><cr>',
+      desc = 'Scroll target window down a line',
       mode = { 'n', 'i' },
     },
     {
       '<S-Up>',
-      '<cmd>RemWinScroll k b half<cr>',
-      desc = 'Scroll window above back half a page',
-      mode = { 'n', 'i' },
-    },
-    {
-      '<A-Down>',
-      '<cmd>RemWinSelect j<cr>',
-      desc = 'Scroll window beloww forward half a page',
-      mode = { 'n', 'i' },
+      '<cmd>RemWinRoute <S-Up><cr>',
+      desc = 'Scroll target window up a half-page',
     },
     {
       '<S-Down>',
-      '<cmd>RemWinScroll j b half<cr>',
-      desc = 'Scroll window below back half a page',
-      mode = { 'n', 'i' },
-    },
-    {
-      '<A-Right>',
-      '<cmd>RemWinSelect l<cr>',
-      desc = 'Scroll window to right forward half a page',
-      mode = { 'n', 'i' },
-    },
-    {
-      '<S-Right>',
-      '<cmd>RemWinScroll l b half<cr>',
-      desc = 'Scroll window to right back half a page',
-      mode = { 'n', 'i' },
-    },
-    {
-      '<A-Left>',
-      '<cmd>RemWinSelect h<cr>',
-      desc = 'Scroll window to left forward half a page',
-      mode = { 'n', 'i' },
-    },
-    {
-      '<S-Left>',
-      '<cmd>RemWinScroll h b half<cr>',
-      desc = 'Scroll window to left back half a page',
-      mode = { 'n', 'i' },
+      '<cmd>RemWinRoute <S-Down><cr>',
+      desc = 'Scroll target window down a half-page',
     },
   },
 }

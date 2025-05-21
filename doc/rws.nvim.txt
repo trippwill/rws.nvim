@@ -1,8 +1,8 @@
 ==============================================================================
 Introduction                                                         *rws.intro*
 
- The RWS (Remote Window Scrolling) module provides functionality to scroll
- windows in view that are not the current window.
+The RWS (Remote Window System) module sends commands
+to an unfocused target window.
 
 ==============================================================================
 Types                                                                *rws.types*
@@ -13,16 +13,11 @@ Win                                                                        *Win*
         integer
 
 
-ScrollDirection                                                *ScrollDirection*
+RoutedKeyDef                                                      *RoutedKeyDef*
 
-    Type: ~
-        "f"|"b"
-
-
-ScrollAmount                                                      *ScrollAmount*
-
-    Type: ~
-        "line"|"half"|"full"
+    Fields: ~
+        {1}    (string)  Key to route
+        {cmd}  (string)  Command to execute
 
 
 HighlightDef : vim.api.keyset.highlight                           *HighlightDef*
@@ -38,42 +33,16 @@ RwsOptions                                                          *RwsOptions*
         {allow_current_win?}  (boolean)            Allow scrolling the current window
         {target_options?}     (OptValueSet)
         {target_hl?}          (HighlightDef)
+        {keys?}               (RoutedKeyDef[])
 
 
 ==============================================================================
 Module                                                              *rws.module*
 
-M.find_target_win({arg})                                     *M.find_target_win*
-    Find the target window based on arg
+M.defaults                                                          *M.defaults*
 
-    Parameters: ~
-        {arg}  (string|integer)  @return Win?, string?
-
-    See: ~
-        |vim.fn.winnr|
-
-
-                                                        *M.scroll_target_window*
-M.scroll_target_window({target}, {direction}, {amount})
-    Scroll a target window by window id
-
-    Parameters: ~
-        {target}     (Win)
-        {direction}  (ScrollDirection)
-        {amount}     (ScrollAmount)
-
-
-                                                                      *M.scroll*
-M.scroll({target_arg}, {scroll_direction}, {scroll_amount})
-    Scroll a target window by winnr arg
-
-    Parameters: ~
-        {target_arg}        (string|integer)   Target window to scroll
-        {scroll_direction}  (ScrollDirection)  Direction to scroll
-        {scroll_amount}     (ScrollAmount)     Amount to scroll
-
-    See: ~
-        |vim.fn.winnr|
+    Type: ~
+        (RwsOptions)
 
 
 M.select_target({target_arg})                                  *M.select_target*
@@ -87,11 +56,20 @@ M.select_target({target_arg})                                  *M.select_target*
         |vim.fn.winnr|
 
 
-M.route()                                                              *M.route*
-
-
 M.reset_target()                                                *M.reset_target*
     Reset the target window to its original state
+
+
+M.route({key})                                                         *M.route*
+    Route a mapped key to the target window.
+    When the target window is not set,
+    the key is sent to input.
+
+    Parameters: ~
+        {key}  (string)  Key to route
+
+    Returns: ~
+        (boolean)  if the key was routed, false otherwise
 
 
 M.setup({opts})                                                        *M.setup*

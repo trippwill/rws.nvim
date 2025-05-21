@@ -142,7 +142,7 @@ function M.select_target(target_arg)
     group = group,
     buffer = bufnr,
     callback = function()
-      if M.__current_target and vim.api.nvim_get_current_win() == winid then
+      if vim.api.nvim_get_current_win() == winid then
         M.reset_target()
       end
     end,
@@ -154,8 +154,8 @@ function M.select_target(target_arg)
     group = group,
     buffer = bufnr,
     callback = function(args)
-      if M.__current_target and tonumber(args.match) == winid then
-        M.reset_target(true)
+      if tonumber(args.match) == winid then
+        M.reset_target()
       end
     end,
     desc = 'RWS: Unset target when it gets closed',
@@ -168,8 +168,7 @@ function M.select_target(target_arg)
 end
 
 ---Reset the target window to its original state
----@param skip_opts_reset? boolean Skip resetting window options. Useful when the window is closing.
-function M.reset_target(skip_opts_reset)
+function M.reset_target()
   local current = M.__current_target
   local augroup_id = M.__autocmd_group
   if current then
@@ -177,9 +176,7 @@ function M.reset_target(skip_opts_reset)
     M.__current_target = nil
     M.__autocmd_group = nil
 
-    if not skip_opts_reset then
-      pcall(swaps.reset_opts, current)
-    end
+    pcall(swaps.reset_opts, current)
 
     -- Clear autocommands if any
     if augroup_id then
@@ -294,11 +291,11 @@ function M.setup(opts)
 
       if keyseq and cmd then
         local mode = keydef.mode or { 'n' }
-        local resolved = utils.escape_keys(keyseq)
+        local escaped = utils.escape_keys(keyseq)
         vim.keymap.set(mode, keyseq, function()
-          M.route(resolved)
+          M.route(escaped)
         end, { noremap = true, silent = true, desc = keydef.desc })
-        M.__resolved_keys[resolved] = utils.escape_keys(keydef.cmd)
+        M.__resolved_keys[escaped] = utils.escape_keys(keydef.cmd)
       else
         M.__error(('Invalid key definition: %s'):format(vim.inspect(keydef)))
       end

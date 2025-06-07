@@ -57,7 +57,7 @@ When using lazy.nvim, it will be loaded automatically.
 3. **Try it out:**
    - Open multiple windows (`:vsplit`, `:split`, etc).
    - Use `<M-Up>`, `<M-Down>`, `<M-Left>`, `<M-Right>` to select a target window.
-   - Use `<S-Up>`, `<S-Down>`, `<S-Up>`, `<S-Down>` to scroll the target window.
+   - Use `<S-Up>`, `<S-Down>`, `<S-Left>`, `<S-Right>` to scroll the target window.
    - Press `<M-Esc>` to reset the target.
 
 ---
@@ -73,10 +73,10 @@ When using lazy.nvim, it will be loaded automatically.
 | `<M-Left>`    | Target window to the left              | Normal/Insert |
 | `<M-Right>`   | Target window to the right             | Normal/Insert |
 | `<M-Esc>`     | Reset target window                    | Normal/Insert |
-| `<S-Up>`        | Scroll target window up a line         | Normal/Insert |
-| `<S-Down>`      | Scroll target window down a line       | Normal/Insert |
-| `<S-Up>`      | Scroll target window up a half-page    | Normal/Insert          |
-| `<S-Down>`    | Scroll target window down a half-page  | Normal/Insert          |
+| `<S-Left>`     | Scroll target window up a line         | Normal/Insert |
+| `<S-Right>`    | Scroll target window down a line       | Normal/Insert |
+| `<S-Up>`       | Scroll target window up a half-page    | Normal/Insert |
+| `<S-Down>`     | Scroll target window down a half-page  | Normal/Insert |
 
 ### Commands
 
@@ -102,7 +102,7 @@ Customize RWS via the `opts` table:
 
 ```lua
 {
-  winhighlight = 'NormalNC:VisualNOS',
+  winhighlight = 'NormalNC:Normal',
   cursorline = false,
   statuscolumn = '%#RWSTargetWindow#',
   signcolumn = 'no',

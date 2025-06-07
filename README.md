@@ -102,7 +102,7 @@ Customize RWS via the `opts` table:
 
 ```lua
 {
-  winhighlight = 'NormalNC:VisualNOS',
+  winhighlight = 'NormalNC:Normal',
   cursorline = false,
   statuscolumn = '%#RWSTargetWindow#',
   signcolumn = 'no',

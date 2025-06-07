@@ -56,4 +56,10 @@ describe('rws.nvim', function()
     local ok = rws.route('<S-Up>')
     assert.is_true(ok or ok == false) -- just check it runs
   end)
+
+  it('returns false when routing with no target', function()
+    rws.reset_target()
+    local ok = rws.route('<S-Up>')
+    assert.is_false(ok)
+  end)
 end)

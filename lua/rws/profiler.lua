@@ -12,7 +12,7 @@ function M.enable(arg, flame)
     return M
   end
 
-  M.__enabled = type(arg) == 'boolean' and arg or true
+  M.__enabled = type(arg) == 'boolean' and arg or false
   M.__flame = flame or false
   return M
 end

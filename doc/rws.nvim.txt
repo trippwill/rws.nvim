@@ -7,13 +7,13 @@ to an unfocused target window.
 ==============================================================================
 Types                                                                *rws.types*
 
-Win                                                                        *Win*
+Win                                                             *rws.module.Win*
 
     Type: ~
         integer
 
 
-RoutedKeyDef                                                      *RoutedKeyDef*
+RoutedKeyDef                                           *rws.module.RoutedKeyDef*
 
     Fields: ~
         {1}      (string)           Key to route
@@ -22,13 +22,13 @@ RoutedKeyDef                                                      *RoutedKeyDef*
         {desc?}  (string)
 
 
-HighlightDef : vim.api.keyset.highlight                           *HighlightDef*
+HighlightDef : vim.api.keyset.highlight                *rws.module.HighlightDef*
 
     Fields: ~
         {1}  (string)
 
 
-RwsOptions                                                          *RwsOptions*
+RwsOptions                                               *rws.module.RwsOptions*
 
     Fields: ~
         {debug?}              (boolean|"verbose")  Enable debug mode
@@ -41,13 +41,13 @@ RwsOptions                                                          *RwsOptions*
 ==============================================================================
 Module                                                              *rws.module*
 
-M.defaults                                                          *M.defaults*
+M.defaults                                                 *rws.module.defaults*
 
     Type: ~
         (RwsOptions)
 
 
-M.select_target({target_arg})                                  *M.select_target*
+M.select_target({target_arg})                         *rws.module.select_target*
     Select a target window by winnr arg
 
     Parameters: ~
@@ -58,14 +58,11 @@ M.select_target({target_arg})                                  *M.select_target*
         |vim.fn.winnr|
 
 
-M.reset_target({skip_opts_reset?})                              *M.reset_target*
+M.reset_target()                                       *rws.module.reset_target*
     Reset the target window to its original state
 
-    Parameters: ~
-        {skip_opts_reset?}  (boolean)  Skip resetting window options. Useful when the window is closing.
 
-
-M.route({keyseq})                                                      *M.route*
+M.route({keyseq})                                             *rws.module.route*
     Route a mapped key to the target window.
     When the target window is not set,
     the key is sent to input.
@@ -77,7 +74,7 @@ M.route({keyseq})                                                      *M.route*
         (boolean)  if the key was routed, false otherwise
 
 
-M.setup({opts})                                                        *M.setup*
+M.setup({opts})                                               *rws.module.setup*
     Initialize the RWS module
 
     Parameters: ~
@@ -94,7 +91,7 @@ Introduction                                                   *opts-swap.intro*
 ==============================================================================
 Types                                                          *opts-swap.types*
 
-OptValueSet                                                        *OptValueSet*
+OptValueSet                                       *opts-swap.module.OptValueSet*
 
     Type: ~
         table<string,any>
@@ -104,25 +101,25 @@ The result of swapping options. A table containing the previous values of the op
 Will also include the target of the swap.
 Always one of WinResult, BufferResult, GlobalResult, or LocalResult.
 
-OptValueResult : table                                          *OptValueResult*
+OptValueResult : table                         *opts-swap.module.OptValueResult*
 
 
-WinResult : OptValueResult                                           *WinResult*
+WinResult : OptValueResult                          *opts-swap.module.WinResult*
 
 
-BufferResult : OptValueResult                                     *BufferResult*
+BufferResult : OptValueResult                    *opts-swap.module.BufferResult*
 
 
-GlobalResult : OptValueResult                                     *GlobalResult*
+GlobalResult : OptValueResult                    *opts-swap.module.GlobalResult*
 
 
-LocalResult : OptValueResult                                       *LocalResult*
+LocalResult : OptValueResult                      *opts-swap.module.LocalResult*
 
 
 ==============================================================================
 Module                                                        *opts-swap.module*
 
-M.win_swap_opts({winid}, {opt_set})                            *M.win_swap_opts*
+M.win_swap_opts({winid}, {opt_set})             *opts-swap.module.win_swap_opts*
     Set options on a window, returning the previous values
 
     Parameters: ~
@@ -133,7 +130,7 @@ M.win_swap_opts({winid}, {opt_set})                            *M.win_swap_opts*
         (WinResult)
 
 
-M.buf_swap_opts({bufnr}, {opt_set})                            *M.buf_swap_opts*
+M.buf_swap_opts({bufnr}, {opt_set})             *opts-swap.module.buf_swap_opts*
     Set options on a buffer, returning the previous values
 
     Parameters: ~
@@ -144,7 +141,7 @@ M.buf_swap_opts({bufnr}, {opt_set})                            *M.buf_swap_opts*
         (BufferResult)
 
 
-M.global_swap_opts({opt_set})                               *M.global_swap_opts*
+M.global_swap_opts({opt_set})                *opts-swap.module.global_swap_opts*
     Set options globally, returning the previous values
 
     Parameters: ~
@@ -154,7 +151,7 @@ M.global_swap_opts({opt_set})                               *M.global_swap_opts*
         (GlobalResult)
 
 
-M.local_swap_opts({opt_set})                                 *M.local_swap_opts*
+M.local_swap_opts({opt_set})                  *opts-swap.module.local_swap_opts*
     Set options locally, returning the previous values
 
     Parameters: ~
@@ -164,7 +161,7 @@ M.local_swap_opts({opt_set})                                 *M.local_swap_opts*
         (LocalResult)
 
 
-M.reset_opts({opt_result})                                        *M.reset_opts*
+M.reset_opts({opt_result})                         *opts-swap.module.reset_opts*
     Reset the options to their original values
 
     Parameters: ~

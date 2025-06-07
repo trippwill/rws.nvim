@@ -57,7 +57,7 @@ When using lazy.nvim, it will be loaded automatically.
 3. **Try it out:**
    - Open multiple windows (`:vsplit`, `:split`, etc).
    - Use `<M-Up>`, `<M-Down>`, `<M-Left>`, `<M-Right>` to select a target window.
-   - Use `<S-Up>`, `<S-Down>`, `<S-Up>`, `<S-Down>` to scroll the target window.
+   - Use `<S-Up>`, `<S-Down>`, `<S-Left>`, `<S-Right>` to scroll the target window.
    - Press `<M-Esc>` to reset the target.
 
 ---
@@ -73,10 +73,10 @@ When using lazy.nvim, it will be loaded automatically.
 | `<M-Left>`    | Target window to the left              | Normal/Insert |
 | `<M-Right>`   | Target window to the right             | Normal/Insert |
 | `<M-Esc>`     | Reset target window                    | Normal/Insert |
-| `<S-Up>`        | Scroll target window up a line         | Normal/Insert |
-| `<S-Down>`      | Scroll target window down a line       | Normal/Insert |
-| `<S-Up>`      | Scroll target window up a half-page    | Normal/Insert          |
-| `<S-Down>`    | Scroll target window down a half-page  | Normal/Insert          |
+| `<S-Left>`     | Scroll target window up a line         | Normal/Insert |
+| `<S-Right>`    | Scroll target window down a line       | Normal/Insert |
+| `<S-Up>`       | Scroll target window up a half-page    | Normal/Insert |
+| `<S-Down>`     | Scroll target window down a half-page  | Normal/Insert |
 
 ### Commands
 
@@ -169,8 +169,9 @@ Contributions are welcome!
 
 - Fork the repository and create a feature branch.
 - Add or update tests in `tests/` as appropriate.
-- Run tests with `sh test.sh` (requires [plenary.nvim](https://github.com/nvim-lua/plenary.nvim)).
-- For documentation, see and update the Lua docstrings and run `sh tools/doc.sh` to regenerate help files. Docstrings are parsed by vimcat.
+- Run tests with `sh test.sh`. Ensure Neovim 0.11+
+  and [plenary.nvim](https://github.com/nvim-lua/plenary.nvim) are installed.
+- For documentation, see and update the Lua docstrings and run `sh doc.sh` to regenerate help files. Docstrings are parsed by vimcat.
 - Open a pull request with a description of your changes.
 
 For questions or feature requests, open an issue or start a discussion.

@@ -169,8 +169,9 @@ Contributions are welcome!
 
 - Fork the repository and create a feature branch.
 - Add or update tests in `tests/` as appropriate.
-- Run tests with `sh test.sh` (requires [plenary.nvim](https://github.com/nvim-lua/plenary.nvim)).
-- For documentation, see and update the Lua docstrings and run `sh tools/doc.sh` to regenerate help files. Docstrings are parsed by vimcat.
+- Run tests with `sh test.sh`. Ensure Neovim 0.11+
+  and [plenary.nvim](https://github.com/nvim-lua/plenary.nvim) are installed.
+- For documentation, see and update the Lua docstrings and run `sh doc.sh` to regenerate help files. Docstrings are parsed by vimcat.
 - Open a pull request with a description of your changes.
 
 For questions or feature requests, open an issue or start a discussion.

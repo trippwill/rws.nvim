@@ -58,7 +58,11 @@ M.defaults = {
     { '<S-Up>', cmd = 'normal! <C-u>', mode = { 'n', 'i' }, desc = 'Scroll the target window up half a page' },
     { '<S-Down>', cmd = 'normal! <C-d>', mode = { 'n', 'i' }, desc = 'Scroll the target window down half a page' },
     { '<S-Left>', cmd = 'normal! <C-y>', mode = { 'n', 'i' }, desc = 'Scroll the target window up one line' },
-    { '<S-Right>', cmd = 'normal! <C-e>', mode = { 'n', 'i' } },
+    { '<S-Right>', cmd = 'normal! <C-e>', mode = { 'n', 'i' }, desc = 'Scroll the target window down one line' },
+    { '<Home>', cmd = 'normal! gg', mode = { 'n', 'i' }, desc = 'Scroll the target window to the top' },
+    { '<End>', cmd = 'normal! G', mode = { 'n', 'i' }, desc = 'Scroll the target window to the bottom' },
+    { '<PageUp>', cmd = 'normal! <C-b>', mode = { 'n', 'i' }, desc = 'Scroll the target window up a full page' },
+    { '<PageDown>', cmd = 'normal! <C-f>', mode = { 'n', 'i' }, desc = 'Scroll the target window down a full page' },
   },
 }
 
